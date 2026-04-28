@@ -10,10 +10,10 @@ const Login = () => {
         e.preventDefault();
         try {
             const response = await axios.post('/api/login', { email, password });
-            setMessage(response.data.message);
-            // Store token in local storage or state
+            localStorage.setItem('token', response.data.token);
+            setMessage('Login successful');
         } catch (error) {
-            setMessage('Error logging in');
+            setMessage('Invalid credentials');
         }
     };
 

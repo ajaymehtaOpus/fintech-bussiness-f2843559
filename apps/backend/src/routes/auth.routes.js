@@ -1,6 +1,5 @@
 const express = require('express');
 const { registerUser, loginUser, recoverPassword } = require('../controllers/auth.controller');
-
 const router = express.Router();
 
 // Route for user registration
