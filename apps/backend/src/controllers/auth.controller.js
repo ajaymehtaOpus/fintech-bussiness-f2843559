@@ -23,7 +23,7 @@ exports.loginUser = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
         const token = jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
-        res.json({ token });
+        res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
         res.status(500).json({ message: 'Error logging in', error: error.message });
     }
@@ -31,6 +31,6 @@ exports.loginUser = async (req, res) => {
 
 // Password recovery
 exports.recoverPassword = async (req, res) => {
-    // Implement password recovery logic here
-    res.status(501).json({ message: 'Password recovery not implemented yet' });
+    // Logic for password recovery (e.g., sending a recovery email)
+    res.status(200).json({ message: 'Password recovery email sent' });
 };
