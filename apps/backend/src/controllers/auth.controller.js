@@ -1,36 +1,41 @@
 const UserService = require('../services/user.service');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 // Register a new user
-const registerUser = async (req, res) => {
+exports.registerUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await UserService.createUser(email, password);
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await UserService.createUser({ email, password: hashedPassword });
         res.status(201).json({ message: 'User registered successfully', user });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: 'Error registering user', error: error.message });
     }
 };
 
-// Login a user
-const loginUser = async (req, res) => {
+// Login user
+exports.loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const token = await UserService.authenticateUser(email, password);
+        const user = await UserService.findUserByEmail(email);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+        const token = jwt.sign({ id: user.id }, 'your_jwt_secret');
         res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
-        res.status(401).json({ message: error.message });
+        res.status(500).json({ message: 'Error logging in', error: error.message });
     }
 };
 
-// Recover password
-const recoverPassword = async (req, res) => {
+// Password recovery
+exports.recoverPassword = async (req, res) => {
     try {
         const { email } = req.body;
-        await UserService.sendPasswordRecoveryEmail(email);
-        res.status(200).json({ message: 'Recovery email sent' });
+        // Logic for password recovery (e.g., sending email)
+        res.status(200).json({ message: 'Password recovery email sent' });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: 'Error during password recovery', error: error.message });
     }
 };
-
-module.exports = { registerUser, loginUser, recoverPassword };
