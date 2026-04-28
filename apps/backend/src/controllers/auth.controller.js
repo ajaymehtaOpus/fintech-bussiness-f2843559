@@ -1,37 +1,34 @@
-const User = require('../models/User');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const UserService = require('../services/user.service');
 
 // Register a new user
 exports.registerUser = async (req, res) => {
-    const { email, password } = req.body;
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await User.create({ email, password: hashedPassword });
-        res.status(201).json({ message: 'User registered successfully', userId: newUser.id });
+        const { email, password } = req.body;
+        const user = await UserService.createUser(email, password);
+        res.status(201).json({ message: 'User registered successfully', user });
     } catch (error) {
-        res.status(500).json({ message: 'Error registering user', error: error.message });
+        res.status(400).json({ message: error.message });
     }
 };
 
 // Login user
 exports.loginUser = async (req, res) => {
-    const { email, password } = req.body;
     try {
-        const user = await User.findOne({ where: { email } });
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
-        const token = jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
-        res.json({ token });
+        const { email, password } = req.body;
+        const token = await UserService.authenticateUser(email, password);
+        res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
-        res.status(500).json({ message: 'Error logging in', error: error.message });
+        res.status(401).json({ message: error.message });
     }
 };
 
 // Password recovery
 exports.recoverPassword = async (req, res) => {
-    const { email } = req.body;
-    // Logic for password recovery (e.g., sending recovery email)
-    res.status(200).json({ message: 'Password recovery instructions sent to email' });
+    try {
+        const { email } = req.body;
+        await UserService.sendPasswordRecoveryEmail(email);
+        res.status(200).json({ message: 'Recovery email sent' });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 };
