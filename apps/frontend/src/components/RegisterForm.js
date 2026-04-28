@@ -12,7 +12,7 @@ const RegisterForm = () => {
             const response = await axios.post('/api/register', { email, password });
             setMessage(response.data.message);
         } catch (error) {
-            setMessage(error.response.data.message);
+            setMessage('Error registering user');
         }
     };
 
