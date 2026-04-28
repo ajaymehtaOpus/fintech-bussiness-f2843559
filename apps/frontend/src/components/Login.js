@@ -6,27 +6,25 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
-    const handleSubmit = async (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('/api/auth/login', { email, password });
+            const response = await axios.post('/api/login', { email, password });
             setMessage(response.data.message);
-            // Store token or redirect user
+            // Store token in local storage or context
         } catch (error) {
             setMessage(error.response.data.message);
         }
     };
 
     return (
-        <div>
+        <form onSubmit={handleLogin}>
             <h2>Login</h2>
-            <form onSubmit={handleSubmit}>
-                <input type='email' value={email} onChange={(e) => setEmail(e.target.value)} placeholder='Email' required />
-                <input type='password' value={password} onChange={(e) => setPassword(e.target.value)} placeholder='Password' required />
-                <button type='submit'>Login</button>
-            </form>
+            <input type='email' value={email} onChange={(e) => setEmail(e.target.value)} placeholder='Email' required />
+            <input type='password' value={password} onChange={(e) => setPassword(e.target.value)} placeholder='Password' required />
+            <button type='submit'>Login</button>
             {message && <p>{message}</p>}
-        </div>
+        </form>
     );
 };
 
