@@ -1,14 +1,28 @@
-const db = require('../db');
+const db = require('../config/db');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 // Create a new user
-exports.createUser = async (userData) => {
-    const { email, password } = userData;
-    const result = await db.query('INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *', [email, password]);
+const createUser = async (email, password) => {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const result = await db.query('INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *', [email, hashedPassword]);
     return result.rows[0];
 };
 
-// Find user by email
-exports.findUserByEmail = async (email) => {
+// Authenticate user
+const authenticateUser = async (email, password) => {
     const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-    return result.rows[0];
+    const user = result.rows[0];
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+        throw new Error('Invalid credentials');
+    }
+    const token = jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
+    return token;
 };
+
+// Send password recovery email
+const sendPasswordRecoveryEmail = async (email) => {
+    // Logic to send recovery email (e.g., using SendGrid)
+};
+
+module.exports = { createUser, authenticateUser, sendPasswordRecoveryEmail };

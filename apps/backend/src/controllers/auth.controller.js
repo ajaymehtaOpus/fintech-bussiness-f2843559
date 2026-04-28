@@ -1,13 +1,10 @@
 const UserService = require('../services/user.service');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 
 // Register a new user
-exports.registerUser = async (req, res) => {
+const registerUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await UserService.createUser({ email, password: hashedPassword });
+        const user = await UserService.createUser(email, password);
         res.status(201).json({ message: 'User registered successfully', user });
     } catch (error) {
         res.status(500).json({ message: 'Error registering user', error: error.message });
@@ -15,27 +12,25 @@ exports.registerUser = async (req, res) => {
 };
 
 // Login user
-exports.loginUser = async (req, res) => {
+const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await UserService.findUserByEmail(email);
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
-        const token = jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
-        res.json({ message: 'Login successful', token });
+        const token = await UserService.authenticateUser(email, password);
+        res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
-        res.status(500).json({ message: 'Error logging in', error: error.message });
+        res.status(401).json({ message: 'Invalid credentials', error: error.message });
     }
 };
 
 // Password recovery
-exports.recoverPassword = async (req, res) => {
+const recoverPassword = async (req, res) => {
     try {
         const { email } = req.body;
-        // Logic for password recovery (e.g., send email with reset link)
-        res.json({ message: 'Password recovery link sent' });
+        await UserService.sendPasswordRecoveryEmail(email);
+        res.status(200).json({ message: 'Recovery email sent' });
     } catch (error) {
-        res.status(500).json({ message: 'Error during password recovery', error: error.message });
+        res.status(500).json({ message: 'Error sending recovery email', error: error.message });
     }
 };
+
+module.exports = { registerUser, loginUser, recoverPassword };
