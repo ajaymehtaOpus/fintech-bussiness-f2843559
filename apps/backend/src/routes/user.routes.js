@@ -6,8 +6,8 @@ const router = express.Router();
 
 // Route for user registration
 router.post('/register', registerValidator, validate, async (req, res) => {
-    const { email, password } = req.body;
     try {
+        const { email, password } = req.body;
         const user = await registerUser(email, password);
         res.status(201).json({ message: 'User registered successfully', user });
     } catch (error) {
@@ -17,8 +17,8 @@ router.post('/register', registerValidator, validate, async (req, res) => {
 
 // Route for user login
 router.post('/login', loginValidator, validate, async (req, res) => {
-    const { email, password } = req.body;
     try {
+        const { email, password } = req.body;
         const { user, token } = await loginUser(email, password);
         res.status(200).json({ message: 'Login successful', user, token });
     } catch (error) {
