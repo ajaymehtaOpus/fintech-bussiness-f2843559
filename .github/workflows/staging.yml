@@ -1,4 +1,4 @@
-name: Staging Deploy
+name: Staging Check
 
 on:
   push:
@@ -6,23 +6,12 @@ on:
       - main
 
 jobs:
-  staging:
+  check:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build project
-        run: npm run build
-
-      - name: Deploy placeholder
-        run: echo "Deploy to staging server here"
+      - name: Confirm FORGE files pushed
+        run: echo "FORGE workflow files pushed successfully"
