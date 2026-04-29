@@ -1,26 +1,34 @@
-const db = require('../db'); // Assume a db module is available
+const db = require('../db'); // Assume db is a configured PostgreSQL client
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const userRegistrationAndLoginService = {
-    register: async (email, password) => {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        // Save user to the database
-        const result = await db.query('INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *', [email, hashedPassword]);
+// Function to register a new user
+const registerUser = async (email, password) => {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const query = 'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *';
+    const values = [email, hashedPassword];
+    try {
+        const result = await db.query(query, values);
         return result.rows[0];
-    },
-    login: async (email, password) => {
-        const user = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (user.rows.length === 0) {
-            throw new Error('User not found.');
-        }
-        const isMatch = await bcrypt.compare(password, user.rows[0].password);
-        if (!isMatch) {
-            throw new Error('Invalid credentials.');
-        }
-        const token = jwt.sign({ id: user.rows[0].id }, 'your_jwt_secret', { expiresIn: '1h' });
-        return { token, user: user.rows[0] };
+    } catch (error) {
+        throw new Error('Error registering user: ' + error.message);
     }
 };
 
-module.exports = userRegistrationAndLoginService;
+// Function to login a user
+const loginUser = async (email, password) => {
+    const query = 'SELECT * FROM users WHERE email = $1';
+    try {
+        const result = await db.query(query, [email]);
+        const user = result.rows[0];
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            throw new Error('Invalid credentials');
+        }
+        const token = jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
+        return { user, token };
+    } catch (error) {
+        throw new Error('Error logging in user: ' + error.message);
+    }
+};
+
+module.exports = { registerUser, loginUser };

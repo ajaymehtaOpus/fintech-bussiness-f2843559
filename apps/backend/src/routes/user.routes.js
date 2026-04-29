@@ -1,27 +1,28 @@
 const express = require('express');
-const router = express.Router();
-const userRegistrationAndLoginValidator = require('../validators/user-registration-and-login.validator');
-const userRegistrationAndLoginService = require('../services/user-registration-and-login.service');
+const { registerValidator, loginValidator, validate } = require('../validators/user-registration-and-login.validator');
+const { registerUser, loginUser } = require('../services/user-registration-and-login.service');
 
-// User registration route
-router.post('/register', userRegistrationAndLoginValidator.register, userRegistrationAndLoginValidator.validate, async (req, res) => {
+const router = express.Router();
+
+// Route for user registration
+router.post('/register', registerValidator, validate, async (req, res) => {
+    const { email, password } = req.body;
     try {
-        const { email, password } = req.body;
-        const user = await userRegistrationAndLoginService.register(email, password);
-        res.status(201).json({ message: 'User registered successfully.', user });
+        const user = await registerUser(email, password);
+        res.status(201).json({ message: 'User registered successfully', user });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// User login route
-router.post('/login', userRegistrationAndLoginValidator.login, userRegistrationAndLoginValidator.validate, async (req, res) => {
+// Route for user login
+router.post('/login', loginValidator, validate, async (req, res) => {
+    const { email, password } = req.body;
     try {
-        const { email, password } = req.body;
-        const { token, user } = await userRegistrationAndLoginService.login(email, password);
-        res.status(200).json({ message: 'Login successful.', token, user });
+        const { user, token } = await loginUser(email, password);
+        res.status(200).json({ message: 'Login successful', user, token });
     } catch (error) {
-        res.status(401).json({ message: error.message });
+        res.status(401).json({ error: error.message });
     }
 });
 
