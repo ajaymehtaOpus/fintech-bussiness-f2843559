@@ -1,30 +1,29 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('../db'); // Assume a database module is available
+const User = require('../models/User');
 
-// Register a new user
 const registerUser = async (userData) => {
-    const { email, password } = userData;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await db.query('INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *', [email, hashedPassword]);
-    return newUser.rows[0];
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const user = new User({
+        email: userData.email,
+        password: hashedPassword
+    });
+    await user.save();
+    return user;
 };
 
-// Login user
 const loginUser = async (userData) => {
-    const { email, password } = userData;
-    const user = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (user.rows.length === 0) throw new Error('User not found');
-    const isValidPassword = await bcrypt.compare(password, user.rows[0].password);
-    if (!isValidPassword) throw new Error('Invalid credentials');
-    const token = jwt.sign({ id: user.rows[0].id }, 'your_jwt_secret', { expiresIn: '1h' });
+    const user = await User.findOne({ email: userData.email });
+    if (!user || !(await bcrypt.compare(userData.password, user.password))) {
+        throw new Error('Invalid credentials');
+    }
+    const token = jwt.sign({ id: user._id }, 'secret', { expiresIn: '1h' });
     return token;
 };
 
-// Recover password
-const recoverPassword = async (email) => {
-    // Logic to send recovery email (not implemented)
-    console.log(`Recovery email sent to ${email}`);
+const recoverPassword = async (userData) => {
+    // Logic for password recovery (e.g., sending email)
+    console.log('Password recovery requested for:', userData.email);
 };
 
 module.exports = { registerUser, loginUser, recoverPassword };
