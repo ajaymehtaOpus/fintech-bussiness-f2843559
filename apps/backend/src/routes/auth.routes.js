@@ -2,7 +2,7 @@ const express = require('express');
 const { registerUser, loginUser, recoverPassword } = require('../controllers/auth.controller');
 
 const router = express.Router();
-
+//checking commit edit
 // Route for user registration
 router.post('/register', registerUser);
 
