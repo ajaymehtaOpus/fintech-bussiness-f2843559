@@ -1,19 +1,18 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = new Sequelize('postgres://user:pass@localhost:5432/mydb');
+const sequelize = new Sequelize('postgres://user:password@localhost:5432/mydb');
 
 const User = sequelize.define('User', {
     email: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
-        validate: {
-            isEmail: true
-        }
     },
     password: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
     }
-}, { timestamps: true });
+}, {
+    timestamps: true,
+});
 
 module.exports = User;

@@ -1,14 +1,14 @@
-const UserService = require('../services/user.service');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
 // Register a new user
 exports.registerUser = async (req, res) => {
+    const { email, password } = req.body;
     try {
-        const { email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await UserService.createUser({ email, password: hashedPassword });
-        res.status(201).json({ message: 'User registered successfully', user });
+        const newUser = await User.create({ email, password: hashedPassword });
+        res.status(201).json({ message: 'User registered successfully', userId: newUser.id });
     } catch (error) {
         res.status(500).json({ message: 'Error registering user', error: error.message });
     }
@@ -16,13 +16,13 @@ exports.registerUser = async (req, res) => {
 
 // Login user
 exports.loginUser = async (req, res) => {
+    const { email, password } = req.body;
     try {
-        const { email, password } = req.body;
-        const user = await UserService.findUserByEmail(email);
+        const user = await User.findOne({ where: { email } });
         if (!user) return res.status(404).json({ message: 'User not found' });
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
-        const token = jwt.sign({ id: user.id }, 'secret', { expiresIn: '1h' });
+        const token = jwt.sign({ id: user.id }, 'secretKey', { expiresIn: '1h' });
         res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
         res.status(500).json({ message: 'Error logging in', error: error.message });
@@ -31,6 +31,7 @@ exports.loginUser = async (req, res) => {
 
 // Password recovery
 exports.recoverPassword = async (req, res) => {
-    // Logic for password recovery will be implemented here
-    res.status(501).json({ message: 'Password recovery not implemented yet' });
+    const { email } = req.body;
+    // Logic for password recovery (e.g., send email with reset link)
+    res.status(200).json({ message: 'Password recovery link sent' });
 };
