@@ -3,13 +3,13 @@ const { registerUser, loginUser, recoverPassword } = require('../controllers/aut
 
 const router = express.Router();
 
-// User registration route
+// Route for user registration
 router.post('/register', registerUser);
 
-// User login route
+// Route for user login
 router.post('/login', loginUser);
 
-// Password recovery route
+// Route for password recovery
 router.post('/recover', recoverPassword);
 
 module.exports = router;
